@@ -1,0 +1,17 @@
+1, Login screen:
+
+	Create a screen and give users options to do register or login; 
+	If the user chooses to log in, let them enter thier email and pwd.
+	Check the corresponding email and pwd in the 'members' table.
+	If the email does not exist or the pwd does not match, print error messages "Please register or enter anthor password or email. ".
+	After loging in successfully, according to the  email, search and display the unseen messages (seen = 'n') in the 'inbox' table. After displaying, set the status of the messages to be  seen(seen = 'y').
+
+	If the users choose to register, let them enter email first, check the email from the 'members' table. If the email alreadly exists, print error message"The email alreadly is used, please enter another email.". After the unique email is entered, let them enter a name, a phone, and a password. Update these infomation in 'members' table.
+
+	After login or signup. give them a menu: log out , offer a ride, search for rides, book members or cancel booking, Post ride requests, search and delete the ride requests. Logout: exit the whole program.  
+
+
+	a, offer a ride: let users enter car number first, check the car number(optional): If a car number is entered, your system must ensure that the car belongs to the member.If the car does not belong to the user print error message. If the users do not enter car number.
+ 	let the users enter the number of seats offered, the price per seat, a luggage description; 
+	let them enter a source location first check it(it should be a location code, if it is not a location code, your system should return all locations that have the keyword as a substring in city, province or address fields(If there are more than 5 matching locations, at most 5 matches will be shown at a time, letting the member select a location or see more matches.); if it is, store the info), and a destination location do the same thing; and enroute locations(optional) do the same thing. We can have a funtion to check location, if the location does not mathch the any location code and substrings, print error message.
+	If all good, Your system should automatically assign a unique ride number (rno) to the ride and set the member as the driver of the ride. Store all infomation in 'rides' table.
