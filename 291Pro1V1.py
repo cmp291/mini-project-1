@@ -335,11 +335,10 @@ def check_location(locode):
 # if it is not a location code, your system should return all locations that have the keyword as a substring in city, province or address fields
 # If there are more than 5 matching locations, at most 5 matches will be shown at a time, letting the member select a location or see more matches.
 
-
-    print("Here")
+    lcd = (locode,)
     # try to find the matched location code
     try:
-        cursor.execute('select lcode from locations where lcode = ?',locode)
+        cursor.execute('select lcode from locations where lcode = ?',lcd)
         result = cursor.fetchone()
         if result is not None:
             return result
@@ -348,29 +347,29 @@ def check_location(locode):
 
     # try to find the matched substrings in city , prov, address
     try:
-        cursor.execute('select lcode,city from locations where city like %?%', locode)
-        resultcity = cursor.fetchall()
-        cursor.execute('select lcode,prov from locations where prov like %?%', locode)
-        resultprov = cursor.fetchall()
-        cursor.execute('select lcode,address from locations where address like %?%', locode)
-        resultadd = cursor.fetchall()
+        lcd = (locode,locode,locode)
+        find_substring = '''select lcode from locations
+        where address like ? or city like ? or prov like ?
+        '''
+        cursor.execute(find_substring,lcd)
+        result = cursor.fetchall()
+        print(result)
+        return result
 
-        totalresult = resultcity + resultprov + resultadd
-
-        if not totalresult:
-            sys.exit("Error in reading in location")
-
-        while True:
-
-            for iterm in range(0, len(totalresult)):
-
-                # after showing the first five elements, let user select
-                if iterm == 5:
-                    choose = input("Select a location or enter 1 to see more matches")
-                    if choose != 1:
-                        return choose
-
-                print(totalresult[iterm], ',')
+        # if not result:
+        #     sys.exit("Error in reading in location")
+        #
+        # while True:
+        #
+        #     for item in range(0, len(result)):
+        #
+        #         # after showing the first five elements, let user select
+        #         if item == 5:
+        #             choose = input("Select a location or enter 1 to see more matches")
+        #             if choose != 1:
+        #                 return choose
+        #
+        #         print(result[item], ',')
 
 
     except:
