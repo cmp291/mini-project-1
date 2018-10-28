@@ -1,6 +1,6 @@
 import sqlite3
 import sys
-conn = sqlite3.connect(":memory")
+conn = sqlite3.connect(":register.db")
 cursor = conn.cursor()
 
 
@@ -132,18 +132,3 @@ def offeraride(email):
         #returndestinationlo = check_location(enroute2)
 
     cursor.execute("insert into rides values ('%%d','%%d', '%%s', '%%d', '%%s', '%%s', '%%s', '%%s','%%d')" % (None, price, date, noseats,return_sourcelo, returndestinationlo,email, entered1))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
