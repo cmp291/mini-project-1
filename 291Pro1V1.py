@@ -320,6 +320,8 @@ def show_menu(email):
                 offer_a_ride(email)
             if choice == 4:
                 post_ride_requests(email)
+            if choice == 3:
+                bookmembers_cancelbookings(email)
 
 # Show messages associated with paricular email
 def show_messages(email):
@@ -606,6 +608,56 @@ def post_ride_requests(email):
     print("Made a request successfully ")
 
 
+
+
+def bookmembers_cancelbookings(email):
+
+    while True:
+
+        choice = input(" Enter 1 to see all bookings on rides you offers. Enter 2 if you want to cancel any booking. Enter Log out to exit: ")
+    
+        if choice == "Log out":
+            sys.exit("Log out successfully.")
+    
+        if choice == 1:
+            listbookings(email)
+
+        elif choice == 2:
+            cancelbooking(email)
+            
+
+
+
+def cancelbooking(email):
+
+    listbookings(email)
+    
+    cancelbno = input("Please enter the bno which you want to cancel. Note: you are only allowed to cancel one bno each time. Enter Log out to exit: ")
+
+    if choice == "Log out":
+        sys.exit("Log out successfully.")
+    
+    if not cancelbno.isdigit():
+        print("Invaild bno. Please try again")
+    
+    else:
+        bno = int(cancelbno)
+        cursor.execute()
+
+    
+
+
+def listbookings(email):
+
+    email1 = (email,)
+
+    cursor.execute(''' select bno, email, rno, cost, seats, pickup, dropoff from bookings where email = ?''', email1)
+
+    results = cursor.fetchall()
+
+    for iterm in results:
+        print(iterm)
+    
 
 
 
