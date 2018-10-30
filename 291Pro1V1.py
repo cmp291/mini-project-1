@@ -2,6 +2,7 @@ import sqlite3
 import time
 import sys
 import hashlib
+import datetime
 
 connection = None
 cursor = None
@@ -67,7 +68,7 @@ def define_tables():
       primary key (lcode)
     );'''
     rides_Table = '''create table rides (
-      rno		int,
+      rno		integer primary key autoincrement,
       price		int,
       rdate		date,
       seats		int,
@@ -76,7 +77,7 @@ def define_tables():
       dst		char(5),
       driver	char(15),
       cno		int,
-      primary key (rno),
+      
       foreign key (src) references locations,
       foreign key (dst) references locations,
       foreign key (driver) references members,
@@ -329,6 +330,10 @@ def show_messages(email):
     connection.commit()
     show_menu(email)
 
+
+    
+
+
 def check_location(locode):
 
 #This function is used to return a location code,
@@ -341,117 +346,198 @@ def check_location(locode):
         cursor.execute('select lcode from locations where lcode = ?',lcd)
         result = cursor.fetchone()
         if result is not None:
-            return result
+            return result[0]
     except:
         print("Error in sql 2")
 
     # try to find the matched substrings in city , prov, address
     try:
-        lcd = (locode,locode,locode)
-        find_substring = '''select lcode from locations
-        where address like ? or city like ? or prov like ?
-        '''
-        cursor.execute(find_substring,lcd)
+        find_substring = '''select lcode ,city, prov, address from locations
+        where locations.city like '%{}%' or locations.prov like '%{}%' or locations.address like '%{}%' 
+        '''.format(locode,locode, locode)
+        
+        
+        cursor.execute(find_substring)
         result = cursor.fetchall()
-        print(result)
-        return result
+        
 
-        # if not result:
-        #     sys.exit("Error in reading in location")
-        #
-        # while True:
-        #
-        #     for item in range(0, len(result)):
-        #
-        #         # after showing the first five elements, let user select
-        #         if item == 5:
-        #             choose = input("Select a location or enter 1 to see more matches")
-        #             if choose != 1:
-        #                 return choose
-        #
-        #         print(result[item], ',')
+        if not result:
+            sys.exit("Error in reading in location")
+        print(len(result))
+        
+        while True:
+            for iterm in range(0, len(result)):
 
+                
+                # after showing the first five elements, let user select
+                if iterm != 0 and iterm%5 == 0 :
+                    
+                    choose = input("Select a location code or enter 1 to see more matches: ")
+                    if choose != "1":
+                        return choose
+                    print(result[iterm])
+        
+                else:
+                    print(result[iterm], ',')
+            
+            choose = input("Select a location code or enter 1 to see more matches: ")
+            if choose != "1":
+                return choose
 
-    except:
-        print("Error in sql 3")
-
-def offer_a_ride(email):
-
-    entered1 = input("Please enter the car number(optional) Enter 'Log out' if you want to quit: ")
-
-#log out option
-    if entered1 == 'Log out':
-        sys.exit("Log out successfully")
-
-#if the user enters a car number, check its belonger
-    if entered1 is "":
-        pass
-    else:
-        try:
-            cursor.execute('select email from members, cars where members.email = cars.owner and cars.cno = ？；',entered1)
-            result = cursor.fetchall()
-            if result != email:
-                print("Sorry. This car does not belong to you")
-
-        except:
-            print("Error in offeraride")
-
-    noseats = input("Please enter the number of seats offered. Enter 'Log out' if you want to quit: ")
-
-    if noseats == 'Log out':
-        sys.exit("Log out successfully")
-
-    noseats = int(noseats)
+    except Exception as e:
+        print("Error in sql 3",str(e))
 
 
-    price = input("Please enter the price per seat,Enter 'Log out' if you want to quit:")
+def get_carnumber(email):
 
-    if price == 'Log out':
-        sys.exit("Log out successfully")
+    #Try to get the car number if the user enters
+    
+    while True:
+    
+        carno = input("Please enter the car number(optional). Enter pass to enter a escape. Enter 'Log out' if you want to quit: ")
 
-    price = int(price)
+        #log out option
+        if carno == 'Log out':
+            sys.exit("Log out successfully")
+
+        #if the user enters a car number, check its belonger. If it is correct, store the car number. Otherwise print error message
+        if carno == "pass":
+            return None
+        
+        else:
+            try:
+                find_car = '''select email from members, cars where members.email = cars.owner and cars.cno = {}'''.format(carno)
+                
+                cursor.execute(find_car)               
+                result = cursor.fetchall()
+            
+                if result != email:
+                    print("Sorry. This car does not belong to you")
+                else:
+                    return carno
+
+            except:
+                print("Error in offeraride")
 
 
-    date = input("Please enter the date by using format year-month-day.Enter 'Log out' if you want to quit: ")
 
-    if date == 'Log out':
-        sys.exit("Log out successfully")
+def get_seatsno():
+    # Try to get the number of seats from stdin
+    while True:
+        
+        noseats = input("Please enter the number of seats offered. Enter 'Log out' if you want to quit: ")
 
+        if noseats == 'Log out':
+            sys.exit("Log out successfully")
+
+        if noseats.isdigit():
+            noseats = int(noseats)
+            return noseats
+
+        else:
+            print ("Invaild number")
+
+
+def get_price():
+# Try to get the correct price from stdin
+    while True:
+    
+        price = input("Please enter the price per seat,Enter 'Log out' if you want to quit:")
+
+        if price == 'Log out':
+            sys.exit("Log out successfully")
+
+        if price.isdigit():
+            price = int(price)
+            return price
+        else:
+            print ("Invaild price ")
+
+
+def get_date():
+#Try to get the date    
+    while True :
+        date = input("Please enter the date by using format year-month-day.Enter 'Log out' if you want to quit: ")
+        
+
+        if date == 'Log out':
+            sys.exit("Log out successfully")
+        
+        else:
+            try:
+                datetime.datetime.strptime(date, '%Y-%m-%d')
+                return date
+        
+            except:
+                print("Invaild date. Please try again. ")
+        
+
+def get_luagge():
+    
     luggage_description = input("Please enter a luggage description. Enter 'Log out' if you want to quit: ")
-
-
 
     if luggage_description == 'Log out':
         sys.exit("Log out successfully")
 
-    sourcelo = input("Please enter a source location. Enter 'Log out' if you want to quit: ")
-
-    if sourcelo == 'Log out':
-        sys.exit("Log out successfully")
-
     else:
-        return_sourcelo = check_location(sourcelo)
+        return luggage_description
 
+        
 
-    destinationlo = input("Please enter a destination location. Enter 'Log out' if you want to quit: ")
+def get_rno():
 
-    if destinationlo == 'Log out':
-        sys.exit("Log out successfully")
+    find_maxrno = ''' select max(rno) from rides'''
+    cursor.execute(find_maxrno)
+    maxrno = cursor.fetchall()
+    rno = int(maxrno[0][0])
+  
+    rno = maxrno[0]+1
+    print(type(rno))
+    print(rno)
 
-    else:
-        returndestinationlo = check_location(destinationlo)
+def offer_a_ride(email):
 
-       # enroute = input("Please enter an enroute location by one space (optional): ")
+    carno = get_carnumber(email)
+
+    noseats = get_seatsno()
+
+    price = get_price()
+
+    date = get_date()
+
+    luggage_description = get_luagge()
+
+    while True:
+        sourcelo = input("Please enter a source location. Enter 'Log out' if you want to quit: ")
+    
+        if sourcelo == 'Log out':
+            sys.exit("Log out successfully")
+
+        else:
+            return_sourcelo = check_location(sourcelo)
+            print (return_sourcelo)
+
+        destinationlo = input("Please enter a destination location. Enter 'Log out' if you want to quit: ")
+
+        if destinationlo == 'Log out':
+            sys.exit("Log out successfully")
+
+        else:
+            returndestinationlo = check_location(destinationlo)
+            print(returndestinationlo)
+            break
+    
+    #rno = get_rno()
 
     # do not know how to deal with enroute locode and
+    data = (price, date, noseats, luggage_description, return_sourcelo, returndestinationlo,email, carno)
 
-    #if not enroute:
-        #enroute1 = enroute[0] + enroute[1] + enroute[2]
-        #return_sourcelo = check_location(enroute1)
-        #enroute2 = enroute[4] + enroute[5] + enroute[6]
-        #returndestinationlo = check_location(enroute2)
+    cursor.execute( '''insert into rides(price, rdate, seats, lugDesc, src, dst, driver, cno) values (?,?,?,?,?,?,?,?) ''', data)
+    #v = "666"
+    #cursor.execute('''select rno from rides where rides.lugDesc = {}''').format(v)
+    #r = cursor.fetchall()
+    #print(r)
 
-    cursor.execute("insert into rides values ('%%d','%%d', '%%s', '%%d', '%%s', '%%s', '%%s', '%%s','%%d')" % (None, price, date, noseats,return_sourcelo, returndestinationlo,email, entered1))
 
 # Login with email & password
 def login():
