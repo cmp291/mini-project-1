@@ -304,17 +304,23 @@ def insert_values():
 
 # Show options menu
 def show_menu(email):
-    print("1.Offer a ride")
-    print("2.Search for rides")
-    print("3.Book members or cancel bookings")
-    print("4.Post ride requests")
-    print("5.Search and delete ride requests")
-    print()
-    choice = int(input("Select an option: "))
-    if choice == 1:
-        offer_a_ride(email)
-    else:
-        print("Invalid choice")
+    while True:
+        print("1.Offer a ride")
+        print("2.Search for rides")
+        print("3.Book members or cancel bookings")
+        print("4.Post ride requests")
+        print("5.Search and delete ride requests")
+        print("Enter Log out to exit ")
+        choice = input("Select an option: ")
+        if choice == "Log out":
+            sys.exit("Log out successfully")
+        else:
+            choice = int(choice)
+            if choice == 1:
+                offer_a_ride(email)
+            if choice == 4:
+                post_ride_requests(email)
+
 # Show messages associated with paricular email
 def show_messages(email):
     print("Unread Messages")
@@ -484,17 +490,6 @@ def get_luagge():
 
         
 
-def get_rno():
-
-    find_maxrno = ''' select max(rno) from rides'''
-    cursor.execute(find_maxrno)
-    maxrno = cursor.fetchall()
-    rno = int(maxrno[0][0])
-  
-    rno = maxrno[0]+1
-    print(type(rno))
-    print(rno)
-
 def offer_a_ride(email):
 
     carno = get_carnumber(email)
@@ -507,6 +502,7 @@ def offer_a_ride(email):
 
     luggage_description = get_luagge()
 
+    #Try to get source location and destination location from user
     while True:
         sourcelo = input("Please enter a source location. Enter 'Log out' if you want to quit: ")
     
@@ -527,16 +523,91 @@ def offer_a_ride(email):
             print(returndestinationlo)
             break
     
-    #rno = get_rno()
 
-    # do not know how to deal with enroute locode and
+    
+
+        
+    # Update the rides table
     data = (price, date, noseats, luggage_description, return_sourcelo, returndestinationlo,email, carno)
 
     cursor.execute( '''insert into rides(price, rdate, seats, lugDesc, src, dst, driver, cno) values (?,?,?,?,?,?,?,?) ''', data)
-    #v = "666"
-    #cursor.execute('''select rno from rides where rides.lugDesc = {}''').format(v)
-    #r = cursor.fetchall()
-    #print(r)
+    connection.commit()
+    rno = cursor.lastrowid
+   
+
+    while True:
+        
+        enlcode = input("Please enter an enroute location(optinal). Note: you are only allowed to enter one enroute location each time. Enter pass if you want to escape. Enter 'Log out' if you want to quit: ")
+        
+        if enlcode == 'Log out':
+            sys.exit("Log out successfully")
+        
+        if enlcode == "pass":
+            break
+        
+        else:
+            renlcode = check_location(enlcode)
+            data_enroute = (rno, renlcode)
+            cursor.execute('''insert into enroute(rno, lcode) values (?,?)''', data_enroute)
+            connection.commit
+        
+    print("Offered a ride successfully ")
+
+
+
+
+
+def post_ride_requests(email):
+    
+    date = get_date()
+    
+    #Try to get providing a date, a pick up location code, a drop off location code
+    while True:
+        pickup_lcode = input("Please provide a pick up location code. Enter Log out to exit: ")
+        
+        if pickup_lcode == "Log out":
+            sys.exit("Log out successfully.")
+        
+        else:
+            return_pickl = check_location(pickup_lcode)
+
+
+        dropoff_lcode = input("Please provide a drop off location code. Enter Log out to exit: ")
+        
+        if dropoff_lcode == "Log out":
+            sys.exit("Log out successfully.")
+        
+        else:
+            return_dropl = check_location(dropoff_lcode)
+            break
+
+        
+    # Try to get and the amount willing to pay per seat.
+    while True:
+        
+        amount = input("Please enter the amount willing to pay per seat. Enter Log out to exit: ")
+        
+        if pickup_lcode == "Log out":
+            sys.exit("Log out successfully.")
+        
+        if amount.isdigit():
+            amount = int(amount)
+            break
+        
+        else: 
+            print("Invaild amount.")
+
+    #Update the request table
+
+    data = (email, date, return_pickl, return_dropl, amount)
+    cursor.execute(''' insert into requests(email, rdate, pickup, dropoff, amount) values (?,?,?,?,?)''',data)
+    connection.commit()
+
+    print("Made a request successfully ")
+
+
+
+
 
 
 # Login with email & password
