@@ -305,7 +305,7 @@ def insert_values():
 # Show options menu
 def show_menu(email):
     while True:
-        print("1.Offer a ride")
+        print("\n\n1.Offer a ride")
         print("2.Search for rides")
         print("3.Book members or cancel bookings")
         print("4.Post ride requests")
@@ -610,39 +610,82 @@ def post_ride_requests(email):
 
 
 
+def bookaride():
+
+    email = input("Please  enter the  driver's email to book rides which is offered by this driver. Enter Log out to exit: :")
+
+    if email == "Log out":
+        sys.exit("Log out successfully.")
+    
+
+
+
+
 def bookmembers_cancelbookings(email):
 
     while True:
 
-        choice = input(" Enter 1 to see all bookings on rides you offers. Enter 2 if you want to cancel any booking. Enter Log out to exit: ")
+        choice = input("Enter 1 to see all bookings on rides you offers.\nEnter 2 if you want to cancel any booking.\nEnter 3 to book a ride.\nEnter Log out to exit: ")
     
         if choice == "Log out":
             sys.exit("Log out successfully.")
     
-        if choice == 1:
+        if choice == "1":
             listbookings(email)
 
-        elif choice == 2:
+        elif choice == "2":
             cancelbooking(email)
+        
+        elif choice == "3":
+            bookaride()
             
 
 
+def sendmessage(bno, sender):
+
+    #Send message to members whose bookings are cancelled 
+    try:
+        cursor.execute('''select email from bookings where bno = ?;''',bno)
+        reciver_email = cursor.fetchone()
+        reciver = reciver_email[0]
+
+        cursor.execute('''select rno from bookings where bno = ?;''',bno)
+        result = cursor.fetchone()
+        rno = result[0]
+
+        date = cursor.execute('''SELECT date('now');''')
+
+        data = (reciver, date , sender, "Your booking has been cancelled.", rno, "n")
+
+        cursor.execute(''' insert into inbox(email, msgTimestamp, sender, content, rno, seen) values (?, ?, ?, ?, ?, ?)''', data)
+
+        cursor.commit()
+
+    except Exception as e:
+        print("Error in sql " + str(e))
 
 def cancelbooking(email):
 
+    #First list all the bookings, then let users enter the bno which they want to delete
     listbookings(email)
     
     cancelbno = input("Please enter the bno which you want to cancel. Note: you are only allowed to cancel one bno each time. Enter Log out to exit: ")
 
-    if choice == "Log out":
+    if cancelbno == "Log out":
         sys.exit("Log out successfully.")
     
     if not cancelbno.isdigit():
         print("Invaild bno. Please try again")
     
     else:
+
         bno = int(cancelbno)
-        cursor.execute()
+        b = (bno,)
+        sendmessage(b, email)
+        cursor.execute('''delete from bookings where bno = ?;''', b)
+        connection.commit()
+        print("Delete it successfully.")
+        
 
     
 
@@ -650,16 +693,25 @@ def cancelbooking(email):
 def listbookings(email):
 
     email1 = (email,)
-
-    cursor.execute(''' select bno, email, rno, cost, seats, pickup, dropoff from bookings where email = ?''', email1)
-
-    results = cursor.fetchall()
-
-    for iterm in results:
-        print(iterm)
     
 
+    try:
+        cursor.execute(''' select bno, email, rno, cost, seats, pickup, dropoff from bookings 
+        where rno = (select rno from rides where rides.driver = ? );''', email1)
+        results = cursor.fetchall()
+        
+    
+        if len(results):
+            for iterm in results:
+                print(iterm)
+            print("\n")
+   
+        else:
+            print("There are no bookings on rides you offer.\n")
 
+    except:
+        print("Error in sql 3")
+    
 
 
 # Login with email & password
