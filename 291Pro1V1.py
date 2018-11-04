@@ -3,6 +3,7 @@ import time
 import sys
 import hashlib
 import datetime
+import getpass
 
 connection = None
 cursor = None
@@ -312,8 +313,10 @@ def show_menu(email):
         print("5.Search and delete ride requests")
         print("Enter Log out to exit ")
         choice = input("Select an option: ")
-        if choice == "Log out":
-            sys.exit("Log out successfully")
+        choice.lower()
+        if choice == "log out":
+            print("Log out successfully\n")
+            startscreen()
         else:
             choice = int(choice)
             if choice == 1:
@@ -338,6 +341,10 @@ def show_messages(email):
     connection.commit()
     show_menu(email)
 
+
+
+
+
 def check_location(locode):
 
 #This function is used to return a location code,
@@ -347,7 +354,7 @@ def check_location(locode):
     lcd = (locode,)
     # try to find the matched location code
     try:
-        cursor.execute('select lcode from locations where lcode = ?',lcd)
+        cursor.execute('select lcode from locations where lower(lcode) = ?',lcd)
         result = cursor.fetchone()
         if result is not None:
             return result[0]
@@ -357,12 +364,13 @@ def check_location(locode):
     # try to find the matched substrings in city , prov, address
     try:
         find_substring = '''select lcode ,city, prov, address from locations
-        where locations.city like '%{}%' or locations.prov like '%{}%' or locations.address like '%{}%'
+        where lower(locations.city) like '%{}%' or lower(locations.prov) like '%{}%' or lower(locations.address) like '%{}%'
         '''.format(locode,locode, locode)
 
 
         cursor.execute(find_substring)
         result = cursor.fetchall()
+
 
         if not result:
             sys.exit("Error in reading in location")
@@ -394,13 +402,15 @@ def check_location(locode):
 def get_carnumber(email):
 
     #Try to get the car number if the user enters
+
     while True:
 
         carno = input("Please enter the car number(optional). Enter pass to enter a escape. Enter 'Log out' if you want to quit: ")
 
         #log out option
-        if carno == 'Log out':
-            sys.exit("Log out successfully")
+        if carno == 'log out':
+            print("Log out successfully")
+            startscreen()
 
         #if the user enters a car number, check its belonger. If it is correct, store the car number. Otherwise print error message
         if carno == "pass":
@@ -408,7 +418,7 @@ def get_carnumber(email):
 
         else:
             try:
-                find_car = '''select email from members, cars where members.email = cars.owner and cars.cno = {}'''.format(carno)
+                find_car = '''select email from members, cars where lower(members.email) = lower(cars.owner) and cars.cno = {}'''.format(carno)
 
                 cursor.execute(find_car)
                 result = cursor.fetchall()
@@ -421,14 +431,18 @@ def get_carnumber(email):
             except:
                 print("Error in offeraride")
 
+
+
 def get_seatsno():
     # Try to get the number of seats from stdin
     while True:
 
         noseats = input("Please enter the number of seats offered. Enter 'Log out' if you want to quit: ")
 
-        if noseats == 'Log out':
-            sys.exit("Log out successfully")
+        noseats.lower()
+        if noseats == 'log out':
+            print("Log out successfully")
+            startscreen()
 
         if noseats.isdigit():
             noseats = int(noseats)
@@ -437,14 +451,18 @@ def get_seatsno():
         else:
             print ("Invaild number")
 
+
 def get_price():
 # Try to get the correct price from stdin
     while True:
 
         price = input("Please enter the price per seat,Enter 'Log out' if you want to quit:")
 
-        if price == 'Log out':
-            sys.exit("Log out successfully")
+        price.lower()
+
+        if price == 'log out':
+            print("Log out successfully")
+            startscreen()
 
         if price.isdigit():
             price = int(price)
@@ -457,9 +475,11 @@ def get_date():
 #Try to get the date
     while True :
         date = input("Please enter the date by using format year-month-day.Enter 'Log out' if you want to quit: ")
+        date.lower()
 
-        if date == 'Log out':
-            sys.exit("Log out successfully")
+        if date == 'log out':
+            print("Log out successfully")
+            startscreen()
 
         else:
             try:
@@ -469,15 +489,21 @@ def get_date():
             except:
                 print("Invaild date. Please try again. ")
 
+
 def get_luagge():
 
     luggage_description = input("Please enter a luggage description. Enter 'Log out' if you want to quit: ")
 
-    if luggage_description == 'Log out':
-        sys.exit("Log out successfully")
+    luggage_description.lower()
+
+    if luggage_description == 'log out':
+        print("Log out successfully")
+        startscreen()
 
     else:
         return luggage_description
+
+
 
 def offer_a_ride(email):
 
@@ -495,8 +521,11 @@ def offer_a_ride(email):
     while True:
         sourcelo = input("Please enter a source location. Enter 'Log out' if you want to quit: ")
 
-        if sourcelo == 'Log out':
-            sys.exit("Log out successfully")
+        sourcelo.lower()
+
+        if sourcelo == 'log out':
+            print("Log out successfully")
+            startscreen()
 
         else:
             return_sourcelo = check_location(sourcelo)
@@ -504,13 +533,20 @@ def offer_a_ride(email):
 
         destinationlo = input("Please enter a destination location. Enter 'Log out' if you want to quit: ")
 
-        if destinationlo == 'Log out':
-            sys.exit("Log out successfully")
+        destinationlo.lower()
+
+        if destinationlo == 'log out':
+            print("Log out successfully")
+            startscreen()
 
         else:
             returndestinationlo = check_location(destinationlo)
             print(returndestinationlo)
             break
+
+
+
+
 
     # Update the rides table
     data = (price, date, noseats, luggage_description, return_sourcelo, returndestinationlo,email, carno)
@@ -519,12 +555,16 @@ def offer_a_ride(email):
     connection.commit()
     rno = cursor.lastrowid
 
+
     while True:
 
         enlcode = input("Please enter an enroute location(optinal). Note: you are only allowed to enter one enroute location each time. Enter pass if you want to escape. Enter 'Log out' if you want to quit: ")
 
-        if enlcode == 'Log out':
-            sys.exit("Log out successfully")
+        enlcode.lower()
+
+        if enlcode == 'log out':
+            print("Log out successfully")
+            startscreen()
 
         if enlcode == "pass":
             break
@@ -536,6 +576,10 @@ def offer_a_ride(email):
             connection.commit
 
     print("Offered a ride successfully ")
+
+
+
+
 
 def post_ride_requests(email):
 
@@ -585,6 +629,9 @@ def post_ride_requests(email):
 
     print("Made a request successfully ")
 
+
+
+
 def bookaride():
 
     email = input("Please  enter the  driver's email to book rides which is offered by this driver. Enter Log out to exit: :")
@@ -592,13 +639,20 @@ def bookaride():
     if email == "Log out":
         sys.exit("Log out successfully.")
 
+
+
+
+
+
 def bookmembers_cancelbookings(email):
 
     while True:
 
         choice = input("Enter 1 to see all bookings on rides you offers.\nEnter 2 if you want to cancel any booking.\nEnter 3 to book a ride.\nEnter Log out to exit: ")
 
-        if choice == "Log out":
+        choice.lower()
+
+        if choice == "log out":
             sys.exit("Log out successfully.")
 
         if choice == "1":
@@ -609,6 +663,8 @@ def bookmembers_cancelbookings(email):
 
         elif choice == "3":
             bookaride()
+
+
 
 def sendmessage(bno, sender):
 
@@ -633,6 +689,8 @@ def sendmessage(bno, sender):
     except Exception as e:
         print("Error in sql " + str(e))
 
+
+
 def cancelbooking(email):
 
     #First list all the bookings, then let users enter the bno which they want to delete
@@ -650,14 +708,22 @@ def cancelbooking(email):
 
         bno = int(cancelbno)
         b = (bno,)
+        #send messages to whose booking is deleted
         sendmessage(b, email)
         cursor.execute('''delete from bookings where bno = ?;''', b)
         connection.commit()
         print("Delete it successfully.")
 
+
+
+
+
 def listbookings(email):
 
+#List all bookings that the user offers
     email1 = (email,)
+
+
     try:
         cursor.execute(''' select bno, email, rno, cost, seats, pickup, dropoff from bookings
         where rno = (select rno from rides where rides.driver = ? );''', email1)
@@ -684,8 +750,8 @@ def login():
         print("Login")
         print("Enter email:")
         email = input()
-        print("Enter password:")
-        password = input()
+    #    print("Enter password:")
+        password = getpass.getpass("Enter password:")
         data = (email,password)
         cursor.execute('SELECT count(*) FROM members WHERE email=? and pwd=?;', data)
         in_members = cursor.fetchone()
