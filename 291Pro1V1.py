@@ -35,15 +35,17 @@ def show_menu(email):
             choice = int(choice)
             if choice == 1:
                 offer_a_ride(email)
-            if choice == 2:
+            elif choice == 2:
                 search_for_rides(email)
-            if choice == 3:
+            elif choice == 3:
                 bookmembers_cancelbookings(email)
-            if choice == 4:
+            elif choice == 4:
                 post_ride_requests(email)
-            if choice == 5:
+            elif choice == 5:
                 searchDeleteRideRequests(email)
-
+            else:
+                print("Invalid option")
+                
 # Show messages associated with paricular email
 def show_messages(email):
     print("Unread Messages")
