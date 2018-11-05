@@ -394,12 +394,12 @@ def check_location(locode):
         print("Error in sql 3",str(e))
 
 def get_carnumber(email):
-
+    
     #Try to get the car number if the user enters
 
     while True:
 
-        carno = input("Please enter the car number(optional). Enter pass to enter a escape. Enter 'Log out' if you want to quit: ")
+        carno = input("Please enter the car number(optional). Enter pass to enter a escape. Enter 'Log out' if you want to quit: ").lower()
 
         #log out option
         if carno == 'log out':
@@ -412,10 +412,11 @@ def get_carnumber(email):
 
         else:
             try:
+                carno = int(carno)
                 find_car = '''select email from members, cars where lower(members.email) = lower(cars.owner) and cars.cno = {}'''.format(carno)
 
                 cursor.execute(find_car)
-                result = cursor.fetchall()
+                result = cursor.fetchone()[0]
 
                 if result != email:
                     print("Sorry. This car does not belong to you")
