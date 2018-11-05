@@ -9,10 +9,10 @@ import random
 connection = None
 cursor = None
 
-def connect(path):
+def connect():
     global connection, cursor
 
-    connection = sqlite3.connect(path)
+    connection = sqlite3.connect(sys.argv[1])
     cursor = connection.cursor()
     cursor.execute(' PRAGMA forteign_keys=ON; ')
     connection.commit()
@@ -432,9 +432,7 @@ def get_seatsno():
     # Try to get the number of seats from stdin
     while True:
 
-        noseats = input("Please enter the number of seats offered. Enter 'Log out' if you want to quit: ")
-
-        noseats.lower()
+        noseats = input("Please enter the number of seats offered. Enter 'Log out' if you want to quit: ").lower()
         if noseats == 'log out':
             print("Log out successfully")
             startscreen()
@@ -450,9 +448,7 @@ def get_price():
 # Try to get the correct price from stdin
     while True:
 
-        price = input("Please enter the price per seat,Enter 'Log out' if you want to quit:")
-
-        price.lower()
+        price = input("Please enter the price per seat,Enter 'Log out' if you want to quit:").lower()
 
         if price == 'log out':
             print("Log out successfully")
@@ -467,8 +463,7 @@ def get_price():
 def get_date():
 #Try to get the date
     while True :
-        date = input("Please enter the date by using format year-month-day.Enter 'Log out' if you want to quit: ")
-        date.lower()
+        date = input("Please enter the date by using format year-month-day.Enter 'Log out' if you want to quit: ").lower()
 
         if date == 'log out':
             print("Log out successfully")
@@ -484,9 +479,7 @@ def get_date():
 
 def get_luagge():
 
-    luggage_description = input("Please enter a luggage description. Enter 'Log out' if you want to quit: ")
-
-    luggage_description.lower()
+    luggage_description = input("Please enter a luggage description. Enter 'Log out' if you want to quit: ").lower()
 
     if luggage_description == 'log out':
         print("Log out successfully")
@@ -660,9 +653,8 @@ def bookaride(email):
     if is_member == 1:
         cost = get_price()
         seats = get_seatsno()
-        available_query = '''select  ifnull(r.seats-b.seats,0) from rides r left outer join bookings b on (b.rno = r.rno)
-                    where r.driver = ? and r.rno = ?'''
-        print("Here")
+        available_query = '''select ifnull(r.seats- sum(b.seats),0) from rides r left outer join bookings b on (b.rno = r.rno)
+                    where r.driver = ? and r.rno = ? group by r.rno'''
         cursor.execute(available_query,(email,ride))
         available_seats = cursor.fetchone()
         if seats > available_seats[0] :
@@ -905,7 +897,7 @@ def search_for_locations(keywords, email):
 
         # try to find the matched substrings in city , prov, address
         try:
-            find_substring = '''select lcode ,city, prov, address from locations
+            find_substring = '''select lcode from locations
             where lower(locations.city) like '%{}%' or lower(locations.prov) like '%{}%' or lower(locations.address) like '%{}%'
             '''.format(keywords[0],keywords[0],keywords[0])
 
@@ -1011,8 +1003,7 @@ def login():
         in_members = 0
         print("Login")
         print("Enter email:")
-        email = input()
-        email.lower()
+        email = input().lower()
     #    print("Enter password:")
         password = getpass.getpass("Enter password:")
         data = (email,password)
@@ -1020,7 +1011,6 @@ def login():
         in_members = cursor.fetchone()
         if  in_members[0] == 1:
             print("Login successful")
-            email.lower()
             show_messages(email)
             val = 1
         elif in_members[0] == 0:
@@ -1070,8 +1060,7 @@ def startscreen():
 def main():
     global connection, cursor
 
-    path="./register.db"
-    connect(path)
+    connect()
     drop_tables()
     define_tables()
     insert_values()
