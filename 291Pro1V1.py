@@ -45,7 +45,7 @@ def show_menu(email):
                 searchDeleteRideRequests(email)
             else:
                 print("Invalid option")
-                
+
 # Show messages associated with paricular email
 def show_messages(email):
     print("Unread Messages")
@@ -603,27 +603,29 @@ def search_for_rides(email):
 
 def search_for_locations(keywords, email):
     if len(keywords) == 1:
+        found = 0
         try:
             cursor.execute('select lcode from locations where lower(lcode) = ?',(keywords[0],))
             result = cursor.fetchone()
             if result is not None:
-                ride = result[0]
+                ride = list(result)
+                found = 1
         except:
             print("Error in sql 2")
-
         # try to find the matched substrings in city , prov, address
-        try:
-            find_substring = '''select lcode from locations
-            where lower(locations.city) like '%{}%' or lower(locations.prov) like '%{}%' or lower(locations.address) like '%{}%'
-            '''.format(keywords[0],keywords[0],keywords[0])
+        if found == 0:
+            try:
+                find_substring = '''select lcode from locations
+                where lower(locations.city) like '%{}%' or lower(locations.prov) like '%{}%' or lower(locations.address) like '%{}%'
+                '''.format(keywords[0],keywords[0],keywords[0])
 
-            cursor.execute(find_substring)
-            result = cursor.fetchall()
-            ride = list(result)
-            if not result:
-                sys.exit("Error in reading in location")
-        except Exception as e:
-            print("Error in sql 3",str(e))
+                cursor.execute(find_substring)
+                result = cursor.fetchall()
+                ride = list(result)
+                if not result:
+                    sys.exit("Error in reading in location")
+            except Exception as e:
+                print("Error in sql 3",str(e))
 
     if len(keywords) == 2:
         try:
@@ -653,27 +655,30 @@ def search_for_locations(keywords, email):
             print("Error in sql 3",str(e))
 
     if len(keywords) == 3:
+        found = 0
         try:
             cursor.execute('select lcode from locations where lower(lcode) = ? or lower(lcode) = ? or lower(lcode) = ?',(keywords[0],keywords[1],keywords[2]))
             result = cursor.fetchone()
             if result is not None:
                 ride = result[0]
+                found == 1
         except:
             print("Error in sql 2")
 
         # try to find the matched substrings in city , prov, address
-        try:
-            find_substring = '''select lcode from locations where (lower(locations.city) like '%{}%' or lower(locations.city) like '%{}%' or lower(locations.city) like '%{}%')
-                      and (lower(locations.prov) like '%{}%' or lower(locations.prov) like '%{}%' or lower(locations.prov) like '%{}%')
-                      and (lower(locations.address) like '%{}%' or lower(locations.address) like '%{}%' or lower(locations.address) like '%{}%')
-                      '''.format(keywords[0],keywords[1],keywords[2],keywords[0],keywords[1],keywords[2],keywords[0],keywords[1],keywords[2])
-            cursor.execute(find_substring)
-            result = cursor.fetchall()
-            ride = list(result)
-            if not result:
-                sys.exit("Error in reading in location")
-        except Exception as e:
-            print("Error in sql 3",str(e))
+        if found == 0:
+            try:
+                find_substring = '''select lcode from locations where (lower(locations.city) like '%{}%' or lower(locations.city) like '%{}%' or lower(locations.city) like '%{}%')
+                          and (lower(locations.prov) like '%{}%' or lower(locations.prov) like '%{}%' or lower(locations.prov) like '%{}%')
+                          and (lower(locations.address) like '%{}%' or lower(locations.address) like '%{}%' or lower(locations.address) like '%{}%')
+                          '''.format(keywords[0],keywords[1],keywords[2],keywords[0],keywords[1],keywords[2],keywords[0],keywords[1],keywords[2])
+                cursor.execute(find_substring)
+                result = cursor.fetchall()
+                ride = list(result)
+                if not result:
+                    sys.exit("Error in reading in location")
+            except Exception as e:
+                print("Error in sql 3",str(e))
     opt = input("Do you want to message the posting member of this ride ? (yes/no).Enter Log out to exit: ").lower()
     if opt == "log out":
        print("Log out successfully.")
@@ -687,10 +692,10 @@ def search_for_locations(keywords, email):
         sendmessage(poster,email,ride,message)
 
 def list(result):
-    for r in result:
+    if len(result) == 1:
         matching_rides_query = '''select r.rno, r.price, r.rdate, r.seats, r.lugDesc, r.src, r.dst, r.driver, r.cno, c.make, c.model, c.year, c.seats, c.owner
         from rides r left outer join cars c on (r.cno = c.cno) where lower(src)=? or lower(dst)=?'''
-        cursor.execute(matching_rides_query,(r[0],r[0]))
+        cursor.execute(matching_rides_query,(result[0],result[0]))
         matching_rides = cursor.fetchall()
         print(len(matching_rides))
         while True:
@@ -709,7 +714,30 @@ def list(result):
             print("All options have been shown")
             choose = input("Select a ride: ")
             return choose
-            break
+    else:
+        for r in result:
+            matching_rides_query = '''select r.rno, r.price, r.rdate, r.seats, r.lugDesc, r.src, r.dst, r.driver, r.cno, c.make, c.model, c.year, c.seats, c.owner
+            from rides r left outer join cars c on (r.cno = c.cno) where lower(src)=? or lower(dst)=?'''
+            cursor.execute(matching_rides_query,(r[0],r[0]))
+            matching_rides = cursor.fetchall()
+            print(len(matching_rides))
+            while True:
+                for iterm in range(0, len(matching_rides)):
+                    # after showing the first five elements, let user select
+                    if iterm != 0 and iterm%5 == 0 :
+
+                        choose = input("Select a ride or enter 'a' to see more rides: ")
+                        if choose != "a":
+                            return choose
+                        print(matching_rides[iterm])
+                    else:
+                        print(matching_rides[iterm], ',')
+                    if iterm == len(matching_rides)-1:
+                        break
+                print("All options have been shown")
+                choose = input("Select a ride: ")
+                return choose
+                break
 
 # Login with email & password
 def login():
